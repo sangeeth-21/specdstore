@@ -164,7 +164,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }) => {
                 {/* Price */}
                 <div className="flex items-center gap-3">
                   <span className="text-3xl md:text-4xl font-bold text-primary">
-                    ${product.price}
+                    ₹{product.price}
                   </span>
                   <Badge variant="outline" className="text-green-600 border-green-600">
                     Free Shipping
@@ -254,7 +254,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }) => {
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Total:</span>
                       <span className="text-xl font-bold text-primary">
-                        ${(product.price * quantity).toFixed(2)}
+                        ₹{(product.price * quantity).toFixed(2)}
                       </span>
                     </div>
                   </div>

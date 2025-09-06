@@ -135,10 +135,10 @@ const CheckoutPage = () => {
           <p className="text-muted-foreground">Review your order and complete your purchase</p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Order Summary */}
           <div className="space-y-6">
-            <Card className="ios-card">
+            <Card className="ios-card z-10">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ShoppingCart className="w-5 h-5" />
@@ -147,38 +147,47 @@ const CheckoutPage = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="flex items-center gap-4 p-4 rounded-lg border border-border">
-                    <img
-                      src={item.image_url}
-                      alt={item.name}
-                      className="w-16 h-16 object-cover rounded-lg"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-foreground truncate">
-                        {item.name}
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        ${item.price} each
-                      </p>
+                  <div key={item.id} className="p-4 rounded-lg border border-border">
+                    <div className="flex items-center gap-4 mb-3">
+                      <img
+                        src={item.image_url}
+                        alt={item.name}
+                        className="w-16 h-16 object-cover rounded-lg"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-foreground truncate">
+                          {item.name}
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          ₹{item.price} each
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-foreground">
+                          ₹{(item.price * item.quantity).toFixed(2)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                        className="w-8 h-8 p-0"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </Button>
-                      <span className="w-8 text-center font-medium">{item.quantity}</span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                        className="w-8 h-8 p-0"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </Button>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                          className="w-8 h-8 p-0"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </Button>
+                        <span className="w-8 text-center font-medium">{item.quantity}</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                          className="w-8 h-8 p-0"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </Button>
+                      </div>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -188,23 +197,18 @@ const CheckoutPage = () => {
                         <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-foreground">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </p>
-                    </div>
                   </div>
                 ))}
               </CardContent>
             </Card>
 
             {/* Price Breakdown */}
-            <Card className="ios-card">
+            <Card className="ios-card z-10">
               <CardContent className="pt-6">
                 <div className="space-y-3">
                   <div className="flex justify-between text-muted-foreground">
                     <span>Subtotal</span>
-                    <span>${cartTotal.toFixed(2)}</span>
+                    <span>₹{cartTotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-muted-foreground">
                     <span>Shipping</span>
@@ -212,25 +216,25 @@ const CheckoutPage = () => {
                       {shippingCost === 0 ? (
                         <Badge variant="secondary">Free</Badge>
                       ) : (
-                        `$${shippingCost.toFixed(2)}`
+                        `₹{shippingCost.toFixed(2)}`
                       )}
                     </span>
                   </div>
                   <div className="flex justify-between text-muted-foreground">
                     <span>Tax (8%)</span>
-                    <span>${tax.toFixed(2)}</span>
+                    <span>₹{tax.toFixed(2)}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between text-xl font-bold text-foreground">
                     <span>Total</span>
-                    <span>${finalTotal.toFixed(2)}</span>
+                    <span>₹{finalTotal.toFixed(2)}</span>
                   </div>
                 </div>
 
                 {cartTotal < 50 && (
                   <div className="mt-4 p-3 bg-accent rounded-lg">
                     <p className="text-sm text-accent-foreground">
-                      💡 Add ${(50 - cartTotal).toFixed(2)} more for free shipping!
+                      💡 Add ₹{(50 - cartTotal).toFixed(2)} more for free shipping!
                     </p>
                   </div>
                 )}
@@ -240,7 +244,7 @@ const CheckoutPage = () => {
 
           {/* Customer Information */}
           <div className="space-y-6">
-            <Card className="ios-card">
+            <Card className="ios-card z-10">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CreditCard className="w-5 h-5" />
@@ -299,7 +303,7 @@ const CheckoutPage = () => {
             </Card>
 
             {/* Security Features */}
-            <Card className="ios-card">
+            <Card className="ios-card z-10">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
@@ -322,7 +326,7 @@ const CheckoutPage = () => {
               className="w-full h-14 text-lg gap-2 btn-primary"
             >
               <CreditCard className="w-5 h-5" />
-              Proceed to Payment - ${finalTotal.toFixed(2)}
+              Proceed to Payment - ₹{finalTotal.toFixed(2)}
             </Button>
           </div>
         </div>

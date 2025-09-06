@@ -4,16 +4,17 @@ import { useTheme, useCart, useUser } from '../App';
 import { Button } from './ui/button';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { Badge } from './ui/badge';
-import { 
-  Sun, 
-  Moon, 
-  ShoppingCart, 
-  User, 
-  Package, 
+import {
+  Sun,
+  Moon,
+  ShoppingCart,
+  User,
+  Package,
   Menu,
   Store,
   Home,
-  CreditCard
+  CreditCard,
+  Gift
 } from 'lucide-react';
 
 const Navigation = () => {
@@ -28,6 +29,7 @@ const Navigation = () => {
     { path: '/checkout', label: 'Checkout', icon: CreditCard },
     { path: '/profile', label: 'Profile', icon: User },
     { path: '/orders', label: 'Orders', icon: Package },
+
   ];
 
   const isActivePath = (path) => {
@@ -46,8 +48,8 @@ const Navigation = () => {
           className={`
             flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200
             ${mobile ? 'w-full justify-start text-base' : 'text-sm'}
-            ${isActivePath(path) 
-              ? 'bg-primary text-primary-foreground shadow-lg' 
+            ${isActivePath(path)
+              ? 'bg-primary text-primary-foreground shadow-lg'
               : 'text-muted-foreground hover:text-foreground hover:bg-accent'
             }
           `}
@@ -71,7 +73,7 @@ const Navigation = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-1 group">
             <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center">
-              <img 
+              <img
                 src="/specd-logo.png"
                 alt="Specd Store"
                 className="w-7 h-7 object-contain"
@@ -114,7 +116,7 @@ const Navigation = () => {
               <Button variant="ghost" size="sm" className="w-9 h-9 rounded-lg relative">
                 <ShoppingCart className="w-4 h-4" />
                 {cartCount > 0 && (
-                  <Badge 
+                  <Badge
                     className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs animate-bounce-in"
                     variant="destructive"
                   >

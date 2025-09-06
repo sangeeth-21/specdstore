@@ -43,7 +43,7 @@ const FAQsPage = () => {
         },
         {
           question: 'Do you offer free shipping?',
-          answer: 'Yes! We offer free standard shipping on all orders over $50 within the continental United States. Free shipping promotions may also be available during special events.'
+          answer: 'Yes! We offer free standard shipping on all orders over ₹50 within the continental United States. Free shipping promotions may also be available during special events.'
         },
         {
           question: 'Can I track my order?',

@@ -12,6 +12,7 @@ import ProfilePage from './components/ProfilePage';
 import OrdersPage from './components/OrdersPage';
 import PaymentPage from './components/PaymentPage';
 import OrderConfirmationPage from './components/OrderConfirmationPage';
+
 import PrivacyPolicyPage from './components/PrivacyPolicyPage';
 import TermsConditionsPage from './components/TermsConditionsPage';
 import FAQsPage from './components/FAQsPage';
@@ -70,7 +71,9 @@ function App() {
       }
     };
     
-    initializeData();
+    if (API) {
+      initializeData();
+    }
   }, []);
 
   // Load theme from localStorage
@@ -188,12 +191,12 @@ function App() {
                 <Routes>
                   <Route path="/" element={<ProductsPage />} />
                   <Route path="/products" element={<ProductsPage />} />
-
                   <Route path="/checkout" element={<CheckoutPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/orders" element={<OrdersPage />} />
                   <Route path="/payment" element={<PaymentPage />} />
                   <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+                  
                   <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                   <Route path="/terms-conditions" element={<TermsConditionsPage />} />
                   <Route path="/faqs" element={<FAQsPage />} />

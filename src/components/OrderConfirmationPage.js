@@ -84,7 +84,7 @@ const OrderConfirmationPage = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Total Amount</span>
-                  <span className="font-semibold text-lg">${order.totalAmount.toFixed(2)}</span>
+                  <span className="font-semibold text-lg">₹{order.totalAmount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Payment Method</span>

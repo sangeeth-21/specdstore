@@ -24,7 +24,7 @@ const TermsConditionsPage = () => {
       icon: CreditCard,
       content: [
         'All orders are subject to product availability and acceptance by Specd.',
-        'Prices are displayed in USD and may change without notice.',
+        'Prices are displayed in INR and may change without notice.',
         'Payment is required at the time of purchase through our secure payment system.',
         'We accept major credit cards, debit cards, and approved payment methods.',
         'Orders may be cancelled or modified before shipping confirmation.'
@@ -35,7 +35,7 @@ const TermsConditionsPage = () => {
       icon: Truck,
       content: [
         'Shipping costs and delivery times vary by location and shipping method selected.',
-        'Free shipping is available on orders over $50 within the continental US.',
+        'Free shipping is available on orders over ₹50 within the continental US.',
         'Delivery times are estimates and may vary due to weather or other circumstances.',
         'Risk of loss and title pass to you upon delivery to the shipping address.',
         'We are not responsible for delays caused by shipping carriers.'

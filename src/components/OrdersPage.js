@@ -44,11 +44,56 @@ const OrdersPage = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
+      
+      if (DEMO_MODE) {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Return mock orders data
+        const mockOrders = [
+          {
+            id: 1,
+            order_number: 'ORD-2024-001',
+            status: 'delivered',
+            total_amount: 299.99,
+            created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+            items: [
+              { id: 1, name: 'Premium Headphones', quantity: 1, price: 299.99 }
+            ],
+            shipping_address: {
+              street: '123 Main St',
+              city: 'New York',
+              state: 'NY',
+              zip: '10001'
+            }
+          },
+          {
+            id: 2,
+            order_number: 'ORD-2024-002',
+            status: 'shipped',
+            total_amount: 149.99,
+            created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+            items: [
+              { id: 2, name: 'Wireless Mouse', quantity: 1, price: 149.99 }
+            ],
+            shipping_address: {
+              street: '456 Oak Ave',
+              city: 'Los Angeles',
+              state: 'CA',
+              zip: '90210'
+            }
+          }
+        ];
+        
+        setOrders(mockOrders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
+        return;
+      }
+      
       const response = await axios.get(`${API}/orders/${user.id}`);
       setOrders(response.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
     } catch (error) {
       console.error('Error fetching orders:', error);
-      toast.error('Failed to load orders');
+      toast.error('Failed to load order');
     } finally {
       setLoading(false);
     }
@@ -222,7 +267,7 @@ const OrdersPage = () => {
                   <div className="space-y-1">
                     <CardTitle className="flex items-center gap-2">
                       <Package className="w-5 h-5" />
-                      Order #{order.id.slice(-8).toUpperCase()}
+                      Order #{order.order_number || `ORD-${String(order.id).padStart(8, '0')}`}
                     </CardTitle>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
@@ -231,7 +276,7 @@ const OrdersPage = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         <CreditCard className="w-4 h-4" />
-                        ${order.total_amount.toFixed(2)}
+                        ₹{order.total_amount.toFixed(2)}
                       </div>
                     </div>
                   </div>
@@ -266,7 +311,7 @@ const OrdersPage = () => {
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">
-                      {order.shipping_address.split(',')[0]}...
+                      {order.shipping_address.city}...
                     </span>
                   </div>
                 </div>
@@ -296,12 +341,12 @@ const OrdersPage = () => {
                                 <div className="flex-1 min-w-0">
                                   <h5 className="font-medium text-foreground truncate">{item.product_name}</h5>
                                   <p className="text-sm text-muted-foreground">
-                                    Qty: {item.quantity} × ${item.price.toFixed(2)}
+                                    Qty: {item.quantity} × ₹{item.price.toFixed(2)}
                                   </p>
                                 </div>
                                 <div className="text-right">
                                   <p className="font-semibold text-foreground">
-                                    ${(item.quantity * item.price).toFixed(2)}
+                                    ₹{(item.quantity * item.price).toFixed(2)}
                                   </p>
                                 </div>
                               </div>
@@ -320,7 +365,7 @@ const OrdersPage = () => {
                           <CardContent className="space-y-3">
                             <div className="flex justify-between text-muted-foreground">
                               <span>Subtotal</span>
-                              <span>${order.total_amount.toFixed(2)}</span>
+                              <span>₹{order.total_amount.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-muted-foreground">
                               <span>Shipping</span>
@@ -328,12 +373,12 @@ const OrdersPage = () => {
                             </div>
                             <div className="flex justify-between text-muted-foreground">
                               <span>Tax</span>
-                              <span>$0.00</span>
+                              <span>₹0.00</span>
                             </div>
                             <Separator />
                             <div className="flex justify-between text-xl font-bold text-foreground">
                               <span>Total</span>
-                              <span>${order.total_amount.toFixed(2)}</span>
+                              <span>₹{order.total_amount.toFixed(2)}</span>
                             </div>
                           </CardContent>
                         </Card>
@@ -377,8 +422,8 @@ const OrdersPage = () => {
                             </CardTitle>
                           </CardHeader>
                           <CardContent>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              {order.shipping_address}
+                            <p className="text-sm text-muted-foreground">
+                              {`${order.shipping_address.street}, ${order.shipping_address.city}, ${order.shipping_address.state} - ${order.shipping_address.zip}`}
                             </p>
                           </CardContent>
                         </Card>
@@ -443,7 +488,7 @@ const OrdersPage = () => {
                           onClick={() => navigate('/order-confirmation', { 
                             state: { 
                               orderData: {
-                                orderId: order.id.slice(-8).toUpperCase(),
+                                orderId: order.order_number || `ORD-${String(order.id).padStart(8, '0')}`,
                                 paymentMethod: 'Cash on Delivery',
                                 totalAmount: order.total_amount,
                                 status: order.status.charAt(0).toUpperCase() + order.status.slice(1),

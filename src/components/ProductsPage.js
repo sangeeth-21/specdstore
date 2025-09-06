@@ -363,7 +363,7 @@ const ProductsPage = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-2xl font-bold text-primary">
-                          ${product.price}
+                          ₹{product.price}
                         </p>
                       </div>
                     </div>

@@ -50,9 +50,7 @@ const Footer = () => {
 
   const socialLinks = [
     { icon: Facebook, href: '#', label: 'Facebook' },
-    { icon: Twitter, href: '#', label: 'Twitter' },
     { icon: Instagram, href: '#', label: 'Instagram' },
-    { icon: Youtube, href: '#', label: 'YouTube' },
   ];
 
   const trustBadges = [
@@ -103,15 +101,15 @@ const Footer = () => {
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="w-4 h-4" />
-                <span>support@specd.com</span>
+                <span>ksangeeth76@gmail.com</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="w-4 h-4" />
-                <span>+1 (555) 123-4567</span>
+                <span>+918270891267</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4" />
-                <span>123 Tech Street, Digital City, DC 12345</span>
+                <span>Palladam,Coimbatore-641664</span>
               </div>
             </div>
 
@@ -163,7 +161,7 @@ const Footer = () => {
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                className="flex-1 px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-none focus:outline-primary"
               />
               <button className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 transition-colors">
                 Subscribe

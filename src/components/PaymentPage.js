@@ -58,30 +58,37 @@ const PaymentPage = () => {
 
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState('cod');
+  const [paymentMethod, setPaymentMethod] = useState('online'); // Default to online payment
   const [loading, setLoading] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
   // Load Razorpay script on component mount
   useEffect(() => {
-    if (paymentMethod === 'online') {
-      loadRazorpayScript().then((success) => {
-        if (success) {
-          setRazorpayLoaded(true);
-        } else {
-          toast.error('Failed to load payment gateway. Please try again.');
-        }
-      });
-    }
-  }, [paymentMethod]);
+    loadRazorpayScript().then((success) => {
+      if (success) {
+        setRazorpayLoaded(true);
+        console.log('Razorpay script loaded successfully');
+      } else {
+        toast.error('Failed to load payment gateway. Please try again.');
+      }
+    });
+  }, []);
 
   const applyCoupon = () => {
-    if (couponCode === 'DISCOUNT10') {
-      setDiscount(subtotal * 0.10);
-      toast.success('Coupon applied: 10% off!');
+    const validCoupons = {
+      'DISCOUNT10': 0.10,
+      'SAVE20': 0.20,
+      'WELCOME15': 0.15,
+      'FIRST25': 0.25
+    };
+
+    if (validCoupons[couponCode.toUpperCase()]) {
+      const discountPercent = validCoupons[couponCode.toUpperCase()];
+      setDiscount(subtotal * discountPercent);
+      toast.success(`Coupon applied: ${discountPercent * 100}% off!`);
     } else {
       setDiscount(0);
-      toast.error('Invalid coupon code.');
+      toast.error('Invalid coupon code. Try: DISCOUNT10, SAVE20, WELCOME15, or FIRST25');
     }
   };
 
@@ -141,29 +148,44 @@ const PaymentPage = () => {
 
   const initiateRazorpayPayment = async (orderData) => {
     try {
-      // For client-side integration without backend, we create the order directly
-      // Note: In production, you should create orders on your backend for security
       const options = {
-        key: process.env.REACT_APP_RAZORPAY_KEY_ID || "rzp_test_1LKSOWLc8tV8f1", // Test key - replace with your own
+        key: process.env.REACT_APP_RAZORPAY_KEY_ID || "rzp_test_RDZKNqTVoUvVwi", // Test key
         amount: Math.round(finalAmountWithDiscount * 100), // Amount in paise
         currency: "INR",
-        name: "Your Store",
-        description: "Order Payment",
-        order_id: null, // We'll create this using the orders API in a real implementation
+        name: "SpecD Store",
+        description: `Order Payment - ${orderItems.length} items`,
+        image: "/images/Logo.jpg", // Add your logo here
         handler: function(response) {
           // Handle successful payment
+          console.log('Payment successful:', response);
           clearCart();
-          toast.success('Payment successful! Order confirmed.');
-          navigate('/order-confirmation', { 
-            state: { 
-              orderData: {
-                ...orderData,
-                paymentId: response.razorpay_payment_id,
-                paymentMethod: 'Online Payment (Razorpay)',
-                status: 'Paid'
+          
+          // Save payment details to localStorage for order tracking
+          const paymentDetails = {
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+            amount: finalAmountWithDiscount,
+            timestamp: new Date().toISOString()
+          };
+          localStorage.setItem('lastPayment', JSON.stringify(paymentDetails));
+          
+          toast.success('🎉 Payment successful! Redirecting to your orders...');
+          
+          // Redirect to orders page
+          setTimeout(() => {
+            navigate('/orders', {
+              state: {
+                orderData: {
+                  ...orderData,
+                  paymentId: response.razorpay_payment_id,
+                  paymentMethod: 'Online Payment (Razorpay)',
+                  status: 'Paid',
+                  paymentDetails: paymentDetails
+                }
               }
-            } 
-          });
+            });
+          }, 1500);
         },
         prefill: {
           name: userInfo.name || 'Customer',
@@ -171,44 +193,36 @@ const PaymentPage = () => {
           contact: userInfo.phone || '9999999999'
         },
         notes: {
-          address: userInfo.address || ''
+          address: userInfo.address || '',
+          order_items: orderItems.map(item => `${item.name} x ${item.quantity}`).join(', ')
         },
         theme: {
-          color: "#3399cc"
+          color: "#8B5CF6" // Purple theme
         },
         modal: {
           ondismiss: function() {
             setLoading(false);
-            toast.info('Payment cancelled');
+            toast.info('Payment cancelled. You can try again anytime.');
           }
+        },
+        retry: {
+          enabled: true,
+          max_count: 3
         }
       };
 
-      // For demo purposes, we'll use a test payment flow
-      // In a real implementation, you would create an order first using Razorpay Orders API
+      console.log('Initializing Razorpay with options:', options);
       const rzp = new window.Razorpay(options);
+      
+      // Handle payment failure
+      rzp.on('payment.failed', function (response) {
+        console.error('Payment failed:', response.error);
+        setLoading(false);
+        toast.error(`Payment failed: ${response.error.description}`);
+      });
+
       rzp.open();
       
-      // Simulate payment success after 3 seconds for demo
-      if (DEMO_MODE) {
-        setTimeout(() => {
-          rzp.onclose = function() {
-            clearCart();
-            toast.success('Payment successful! Order confirmed.');
-            navigate('/order-confirmation', { 
-              state: { 
-                orderData: {
-                  ...orderData,
-                  paymentId: 'pay_' + Math.random().toString(36).substr(2, 9),
-                  paymentMethod: 'Online Payment (Razorpay)',
-                  status: 'Paid'
-                }
-              } 
-            });
-          };
-          rzp.close();
-        }, 3000);
-      }
     } catch (error) {
       console.error('Razorpay initialization error:', error);
       toast.error('Failed to initialize payment gateway. Please try again.');
@@ -220,6 +234,19 @@ const PaymentPage = () => {
     try {
       setLoading(true);
       
+      // Validate form data
+      if (!userInfo.name || !userInfo.email || !userInfo.phone || !userInfo.address) {
+        toast.error('Please complete all required fields in checkout.');
+        setLoading(false);
+        return;
+      }
+
+      if (orderItems.length === 0) {
+        toast.error('Your cart is empty.');
+        setLoading(false);
+        return;
+      }
+      
       // Create the order first
       const createdOrder = await createOrder();
       
@@ -230,11 +257,12 @@ const PaymentPage = () => {
         status: paymentMethod === 'cod' ? 'Confirmed' : 'Pending Payment',
         estimatedDelivery: '3-5 business days',
         items: orderItems,
-        customer: userInfo
+        customer: userInfo,
+        discount: discount
       };
 
       if (paymentMethod === 'cod') {
-        // Clear cart and show success
+        // Clear cart and redirect to offers page
         clearCart();
         toast.success('Order placed successfully with Cash on Delivery!');
         navigate('/order-confirmation', { state: { orderData } });
@@ -248,6 +276,7 @@ const PaymentPage = () => {
         await initiateRazorpayPayment(orderData);
       }
     } catch (error) {
+      console.error('Order placement error:', error);
       toast.error('Failed to place order. Please try again.');
       setLoading(false);
     }
@@ -271,7 +300,7 @@ const PaymentPage = () => {
           </div>
           <h1 className="text-3xl font-bold text-foreground">Complete Your Payment</h1>
         </div>
-        <p className="text-muted-foreground mb-8">Secure payment with multiple options</p>
+        <p className="text-muted-foreground mb-8">Secure payment with Razorpay - India's most trusted payment gateway</p>
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Order Summary */}
@@ -280,22 +309,42 @@ const PaymentPage = () => {
               <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-xl">
                 <CardTitle className="flex items-center gap-2 text-blue-800">
                   <ShoppingCart className="w-5 h-5" />
-                  Order Summary
+                  Order Summary ({orderItems.length} items)
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 pt-6">
+                {/* Order Items */}
+                <div className="space-y-3 max-h-40 overflow-y-auto">
+                  {orderItems.map((item, index) => (
+                    <div key={index} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                      <img 
+                        src={item.image_url} 
+                        alt={item.name}
+                        className="w-12 h-12 object-cover rounded-lg"
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{item.name}</p>
+                        <p className="text-xs text-gray-500">Qty: {item.quantity} × ₹{item.price}</p>
+                      </div>
+                      <p className="font-semibold">₹{(item.price * item.quantity).toFixed(2)}</p>
+                    </div>
+                  ))}
+                </div>
+                
+                <Separator />
+                
                 <div className="flex justify-between text-muted-foreground">
                    <span>Subtotal</span>
-                   <span>${(finalTotal || subtotal).toFixed(2)}</span>
+                   <span>₹{(finalTotal || subtotal).toFixed(2)}</span>
                  </div>
                  <div className="flex justify-between text-muted-foreground">
                    <span>Discount</span>
-                   <span className="text-green-600">-${discount.toFixed(2)}</span>
+                   <span className="text-green-600">-₹{discount.toFixed(2)}</span>
                  </div>
                  <Separator />
                  <div className="flex justify-between text-xl font-bold text-foreground">
                    <span>Total Amount</span>
-                   <span>${finalAmountWithDiscount.toFixed(2)}</span>
+                   <span>₹{finalAmountWithDiscount.toFixed(2)}</span>
                  </div>
               </CardContent>
             </Card>
@@ -305,18 +354,23 @@ const PaymentPage = () => {
               <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-t-xl">
                 <CardTitle className="flex items-center gap-2 text-amber-800">
                   <Percent className="w-5 h-5" />
-                  Apply Coupon
+                  Apply Coupon Code
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex gap-2 pt-6">
-                <Input
-                  type="text"
-                  placeholder="Enter coupon code"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  className="flex-1 h-12"
-                />
-                <Button onClick={applyCoupon} className="h-12 bg-amber-600 hover:bg-amber-700">Apply</Button>
+              <CardContent className="pt-6">
+                <div className="flex gap-2 mb-3">
+                  <Input
+                    type="text"
+                    placeholder="Enter coupon code (e.g., DISCOUNT10)"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    className="flex-1 h-12"
+                  />
+                  <Button onClick={applyCoupon} className="h-12 bg-amber-600 hover:bg-amber-700">Apply</Button>
+                </div>
+                <p className="text-xs text-amber-700">
+                  Try: DISCOUNT10 (10% off), SAVE20 (20% off), WELCOME15 (15% off), FIRST25 (25% off)
+                </p>
               </CardContent>
             </Card>
 
@@ -327,8 +381,8 @@ const PaymentPage = () => {
                   <Shield className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-green-800">Secure Payment</h3>
-                  <p className="text-sm text-green-600">Your payment information is encrypted and secure</p>
+                  <h3 className="font-semibold text-green-800">256-bit SSL Encryption</h3>
+                  <p className="text-sm text-green-600">Your payment information is completely secure</p>
                 </div>
               </CardContent>
             </Card>
@@ -345,22 +399,28 @@ const PaymentPage = () => {
               </CardHeader>
               <CardContent className="pt-6">
                 <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-4">
+                  <div className="flex items-center space-x-4 p-4 border-2 rounded-lg hover:border-purple-400 transition-colors cursor-pointer bg-purple-50">
+                    <RadioGroupItem value="online" id="online" className="text-purple-600 border-2 border-purple-300 w-5 h-5" />
+                    <Label htmlFor="online" className="flex items-center gap-2 text-lg font-medium cursor-pointer">
+                      <div className="bg-purple-100 p-2 rounded-full">
+                        <CreditCard className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <div>Online Payment (Razorpay)</div>
+                        <div className="text-sm text-purple-600 font-normal">Recommended • Instant confirmation</div>
+                      </div>
+                    </Label>
+                  </div>
                   <div className="flex items-center space-x-4 p-4 border rounded-lg hover:border-purple-400 transition-colors cursor-pointer">
                     <RadioGroupItem value="cod" id="cod" className="text-purple-600 border-2 border-gray-300 w-5 h-5" />
                     <Label htmlFor="cod" className="flex items-center gap-2 text-lg font-medium cursor-pointer">
                       <div className="bg-blue-100 p-2 rounded-full">
                         <DollarSign className="w-5 h-5 text-blue-600" />
                       </div>
-                      Cash on Delivery (COD)
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-4 p-4 border rounded-lg hover:border-purple-400 transition-colors cursor-pointer">
-                    <RadioGroupItem value="online" id="online" className="text-purple-600 border-2 border-gray-300 w-5 h-5" />
-                    <Label htmlFor="online" className="flex items-center gap-2 text-lg font-medium cursor-pointer">
-                      <div className="bg-purple-100 p-2 rounded-full">
-                        <CreditCard className="w-5 h-5 text-purple-600" />
+                      <div>
+                        <div>Cash on Delivery (COD)</div>
+                        <div className="text-sm text-gray-600 font-normal">Pay when you receive</div>
                       </div>
-                      Online Payment (Razorpay)
                     </Label>
                   </div>
                 </RadioGroup>
@@ -376,11 +436,17 @@ const PaymentPage = () => {
                       <CheckCircle className="w-4 h-4 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-blue-800 mb-1">Secure Online Payment</h3>
-                      <p className="text-sm text-blue-600">
-                        You will be redirected to Razorpay's secure payment gateway to complete your transaction.
-                        We accept all major credit/debit cards, UPI, and net banking.
+                      <h3 className="font-medium text-blue-800 mb-1">Secure Razorpay Payment</h3>
+                      <p className="text-sm text-blue-600 mb-2">
+                        You will be redirected to Razorpay's secure payment gateway. We accept:
                       </p>
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        <span className="bg-blue-100 px-2 py-1 rounded">Credit Cards</span>
+                        <span className="bg-blue-100 px-2 py-1 rounded">Debit Cards</span>
+                        <span className="bg-blue-100 px-2 py-1 rounded">UPI</span>
+                        <span className="bg-blue-100 px-2 py-1 rounded">Net Banking</span>
+                        <span className="bg-blue-100 px-2 py-1 rounded">Wallets</span>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -422,7 +488,7 @@ const PaymentPage = () => {
                  ? 'Processing...' 
                  : paymentMethod === 'online' && !razorpayLoaded
                    ? 'Loading Payment Gateway...'
-                   : `Pay $${finalAmountWithDiscount.toFixed(2)} ${paymentMethod === 'cod' ? 'on Delivery' : 'Now'}`
+                   : `Pay ₹${finalAmountWithDiscount.toFixed(2)} ${paymentMethod === 'cod' ? 'on Delivery' : 'Now'}`
                }
              </Button>
 
