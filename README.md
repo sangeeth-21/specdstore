@@ -1,6 +1,24 @@
 # Getting Started with Create React Ap
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# SpecdStore - E-commerce Platform
+
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app) and implements a full-featured e-commerce platform with the following components:
+
+## Key Features
+- Product catalog with responsive grid layout
+- Shopping cart functionality
+- User authentication and profiles
+- Order processing and tracking
+- Payment integration
+
+## Data Schemas
+
+The application uses the following data models defined in `src/lib/schemas.js`:
+- ProductSchema: id, name, description, price, imageUrl, rating, stock, category
+- UserSchema: id, name, email, phone, address
+- CartItemSchema: id, name, quantity, price
+- OrderSchema: id, user_id, order_items, status, total
+- PaymentSchema: order_id, amount, status, method
 
 ## Available Scripts
 
